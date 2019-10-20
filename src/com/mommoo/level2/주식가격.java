@@ -4,12 +4,13 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Stack;
 
 public class 주식가격 {
     public static void main(String[] args) {
-        System.out.println(Arrays.toString(new 주식가격().solution(new int[]{1, 2, 3, 2, 3})));
-        System.out.println(Arrays.toString(new 주식가격().solution(new int[]{1, 2, 3, 4, 5})));
-        System.out.println(Arrays.toString(new 주식가격().solution(new int[]{5, 5, 4, 7, 1})));
+        System.out.println(Arrays.toString(new 주식가격().solution2(new int[]{1, 2, 3, 2, 3})));
+        System.out.println(Arrays.toString(new 주식가격().solution2(new int[]{1, 2, 3, 4, 5})));
+        System.out.println(Arrays.toString(new 주식가격().solution2(new int[]{5, 5, 4, 7, 1})));
     }
 
     public int[] solution(int[] p) {
@@ -32,6 +33,36 @@ public class 주식가격 {
         }
 
         prices.forEach(price -> answers[price.index] = price.time);
+
+        return answers;
+    }
+
+    public int[] solution2(int[] p) {
+        int len = p.length;
+        int[] answers = new int[len];
+
+        Stack<Integer> stack = new Stack<>();
+
+        for (int i = 0 ; i < len ; i++) {
+            int curValue = p[i];
+            while(!stack.isEmpty()) {
+                int index = stack.peek();
+                int value = p[index];
+                if (value <= curValue) {
+                    break;
+                }
+
+                stack.pop();
+                answers[index] = i - index;
+            }
+
+            stack.push(i);
+        }
+
+        while (!stack.isEmpty()) {
+            int index = stack.pop();
+            answers[index] = len - 1 - index;
+        }
 
         return answers;
     }
