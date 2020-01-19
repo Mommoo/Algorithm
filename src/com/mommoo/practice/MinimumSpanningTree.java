@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -81,27 +82,78 @@ public class MinimumSpanningTree {
                    ", edgeWeight=" + edgeWeight +
                    '}';
         }
-    }
 
-    private static class Node {
-        private final String name;
-        private final int edgeWeight;
-        private final List<Node> nextNodes = new LinkedList<>();
-
-        public Node(String name, int edgeWeight) {
-            this.name = name;
-            this.edgeWeight = edgeWeight;
+        @Override
+        public boolean equals(Object o) {
+            if (this == o)
+                return true;
+            if (!(o instanceof GraphEntity))
+                return false;
+            GraphEntity that = (GraphEntity) o;
+            return edgeWeight == that.edgeWeight &&
+                   Objects.equals(sourceNode, that.sourceNode) &&
+                   Objects.equals(endNode, that.endNode);
         }
 
-        public void addNode(String name, int edgeWeight) {
-            Node nextNode = new Node(name, edgeWeight);
-            nextNodes.add(nextNode);
-            nextNode.addNode(this.name, this.edgeWeight);
+        @Override
+        public int hashCode() {
+            return Objects.hash(sourceNode, endNode, edgeWeight);
+        }
+    }
+
+    private static class NodeGroup {
+        private Set<String> nodes = new HashSet<>();
+        private Set<GraphEntity> graphEntities = new HashSet<>();
+
+        public boolean canAttach(GraphEntity graphEntity) {
+            return nodes.contains(graphEntity.sourceNode) || nodes.contains(graphEntity.endNode);
+        }
+
+        public boolean isCircularConnect(GraphEntity graphEntity) {
+            return nodes.contains(graphEntity.sourceNode) && nodes.contains(graphEntity.endNode);
+        }
+
+        public void attach(GraphEntity graphEntity) {
+            nodes.add(graphEntity.sourceNode);
+            nodes.add(graphEntity.endNode);
+            graphEntities.add(graphEntity);
+        }
+
+        public void addGroup(NodeGroup nodeGroup) {
+            nodes.addAll(nodeGroup.nodes);
+            graphEntities.addAll(nodeGroup.graphEntities);
+        }
+
+        public void printEntities() {
+            System.out.println(graphEntities);
+        }
+
+        @Override
+        public String toString() {
+            return "NodeGroup{" +
+                   "nodes=" + nodes +
+                   '}';
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o)
+                return true;
+            if (!(o instanceof NodeGroup))
+                return false;
+            NodeGroup nodeGroup = (NodeGroup) o;
+            return Objects.equals(nodes, nodeGroup.nodes) &&
+                   Objects.equals(graphEntities, nodeGroup.graphEntities);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(nodes, graphEntities);
         }
     }
 
     private static class KruskalAlgorithm {
-        private final List<Set<String>> groups = new LinkedList<>();
+        private final List<NodeGroup> groups = new LinkedList<>();
 
         public KruskalAlgorithm(Graph graph) {
             // 가중치 값으로 오름차순 정렬
@@ -122,50 +174,48 @@ public class MinimumSpanningTree {
 
                 System.out.println(groups);
             }
+
+            groups.get(0).printEntities();
         }
 
         public boolean isCircularConnection(GraphEntity graphEntity) {
-            Set<String> group = findGroup(graphEntity);
+            NodeGroup group = findGroup(graphEntity);
 
             if (group == null) {
                 return false;
             }
 
-            return group.contains(graphEntity.sourceNode) && group.contains(graphEntity.endNode);
+            return group.isCircularConnect(graphEntity);
         }
 
-        private Set<String> findGroup(GraphEntity graphEntity) {
+        private NodeGroup findGroup(GraphEntity graphEntity) {
             return groups.stream()
-                         .filter(group -> group.contains(graphEntity.sourceNode) || group.contains(graphEntity.endNode))
+                         .filter(group -> group.canAttach(graphEntity))
                          .findFirst()
                          .orElse(null);
         }
 
         public void updateGroup(GraphEntity graphEntity) {
-            List<Set<String>> findGroups = groups.stream()
-                                                 .filter(group -> group.contains(graphEntity.sourceNode) || group.contains(graphEntity.endNode))
+            List<NodeGroup> findGroups = groups.stream()
+                                                 .filter(group -> group.canAttach(graphEntity))
                                                  .collect(Collectors.toList());
 
             if (findGroups.isEmpty()) {
-                Set<String> newGroup = new HashSet<>();
-                newGroup.add(graphEntity.sourceNode);
-                newGroup.add(graphEntity.endNode);
-                groups.add(newGroup);
+                NodeGroup newNodeGroup = new NodeGroup();
+                newNodeGroup.attach(graphEntity);
+                groups.add(newNodeGroup);
             } else if (findGroups.size() == 1) {
-                Set<String> group = findGroups.get(0);
-                group.add(graphEntity.sourceNode);
-                group.add(graphEntity.endNode);
+                NodeGroup nodeGroup = findGroups.get(0);
+                nodeGroup.attach(graphEntity);
             } else {
-                Set<String> newGroup = new HashSet<>();
+                NodeGroup newNodeGroup = new NodeGroup();
 
-                for (Set<String> findGroup : findGroups) {
-                    groups.remove(findGroup);
-                    newGroup.addAll(findGroup);
+                for (NodeGroup nodeGroup : findGroups) {
+                    groups.remove(nodeGroup);
+                    newNodeGroup.addGroup(nodeGroup);
                 }
 
-                newGroup.add(graphEntity.sourceNode);
-                newGroup.add(graphEntity.endNode);
-                groups.add(newGroup);
+                groups.add(newNodeGroup);
             }
 
         }
