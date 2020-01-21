@@ -13,7 +13,8 @@ import java.util.stream.Collectors;
 public class MinimumSpanningTree {
     public static void main(String[] args) {
         Graph graph = createGraph();
-        new KruskalAlgorithm(graph);
+//        new KruskalAlgorithm(graph);
+        new PrimsAlgorithm(graph);
     }
 
     // https://t1.daumcdn.net/cfile/tistory/256619495806628508
@@ -61,6 +62,17 @@ public class MinimumSpanningTree {
         public List<GraphEntity> toEntities() {
             return new ArrayList<>(entities);
         }
+
+        public Set<String> toNodes() {
+            Set<String> nodes = new HashSet<>();
+
+            for (GraphEntity graphEntity : entities) {
+                nodes.add(graphEntity.sourceNode);
+                nodes.add(graphEntity.endNode);
+            }
+
+            return nodes;
+        }
     }
 
     private static class GraphEntity {
@@ -95,6 +107,10 @@ public class MinimumSpanningTree {
                    Objects.equals(endNode, that.endNode);
         }
 
+        public boolean isContainNode(String node) {
+            return sourceNode.equals(node) || endNode.equals(node);
+        }
+
         @Override
         public int hashCode() {
             return Objects.hash(sourceNode, endNode, edgeWeight);
@@ -125,7 +141,7 @@ public class MinimumSpanningTree {
         }
 
         public void printEntities() {
-            System.out.println(graphEntities);
+            System.out.println(graphEntities.stream().sorted(Comparator.comparingInt(g -> g.edgeWeight)).collect(Collectors.toList()));
         }
 
         @Override
@@ -149,6 +165,10 @@ public class MinimumSpanningTree {
         @Override
         public int hashCode() {
             return Objects.hash(nodes, graphEntities);
+        }
+
+        public int size() {
+            return nodes.size();
         }
     }
 
@@ -197,8 +217,8 @@ public class MinimumSpanningTree {
 
         public void updateGroup(GraphEntity graphEntity) {
             List<NodeGroup> findGroups = groups.stream()
-                                                 .filter(group -> group.canAttach(graphEntity))
-                                                 .collect(Collectors.toList());
+                                               .filter(group -> group.canAttach(graphEntity))
+                                               .collect(Collectors.toList());
 
             if (findGroups.isEmpty()) {
                 NodeGroup newNodeGroup = new NodeGroup();
@@ -218,6 +238,47 @@ public class MinimumSpanningTree {
                 groups.add(newNodeGroup);
             }
 
+        }
+    }
+
+    private static class PrimsAlgorithm {
+        private Set<String> findNodes = new HashSet<>();
+        private NodeGroup findNodeGroups = new NodeGroup();
+
+        public PrimsAlgorithm(Graph graph) {
+            int size = graph.toNodes().size();
+            List<GraphEntity> entities = graph.toEntities();
+            String node = graph.toNodes().iterator().next();
+            findNodes.add(node);
+            while (findNodeGroups.size() != size) {
+                GraphEntity minimumEntity = findMinimumEdgeEntity(entities);
+                entities.remove(minimumEntity);
+                System.out.println(entities);
+                System.out.println(findNodes + " , " + minimumEntity);
+                addFoundNode(minimumEntity);
+                findNodeGroups.attach(minimumEntity);
+            }
+            findNodeGroups.printEntities();
+        }
+
+        private void addFoundNode(GraphEntity graphEntity) {
+            this.findNodes.add(graphEntity.sourceNode);
+            this.findNodes.add(graphEntity.endNode);
+        }
+
+        private GraphEntity findMinimumEdgeEntity(List<GraphEntity> entities) {
+            return entities.stream()
+                           .filter(this::isContainNodes)
+                           .min(Comparator.comparingInt(g -> g.edgeWeight))
+                           .orElse(null);
+        }
+
+        private boolean isContainNodes(GraphEntity entity) {
+            if (findNodes.contains(entity.sourceNode) && findNodes.contains(entity.endNode)) {
+                return false;
+            }
+
+            return findNodes.stream().anyMatch(entity::isContainNode);
         }
     }
 }
