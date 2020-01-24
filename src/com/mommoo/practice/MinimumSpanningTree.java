@@ -1,19 +1,12 @@
 package com.mommoo.practice;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class MinimumSpanningTree {
     public static void main(String[] args) {
         Graph graph = createGraph();
-//        new KruskalAlgorithm(graph);
+        new KruskalAlgorithm(graph);
         new PrimsAlgorithm(graph);
     }
 
@@ -43,21 +36,6 @@ public class MinimumSpanningTree {
         public void add(String sourceNode, String endNode, int edgeWeight) {
             entities.add(new GraphEntity(sourceNode, endNode, edgeWeight));
         }
-
-        //        public Map<String, List<GraphEntity>> get() {
-        //            Map<String, List<GraphEntity>> graphEntities = new HashMap<>();
-        //
-        //            for (GraphEntity graphEntity : entities) {
-        //                graphEntities
-        //                        .computeIfAbsent(graphEntity.sourceNode, key -> new LinkedList<>())
-        //                        .add(graphEntity);
-        //                graphEntities
-        //                        .computeIfAbsent(graphEntity.endNode, key -> new LinkedList<>())
-        //                        .add(graphEntity);
-        //            }
-        //            System.out.println(graphEntities);
-        //            return graphEntities;
-        //        }
 
         public List<GraphEntity> toEntities() {
             return new ArrayList<>(entities);
@@ -103,8 +81,8 @@ public class MinimumSpanningTree {
                 return false;
             GraphEntity that = (GraphEntity) o;
             return edgeWeight == that.edgeWeight &&
-                   Objects.equals(sourceNode, that.sourceNode) &&
-                   Objects.equals(endNode, that.endNode);
+                   ((Objects.equals(sourceNode, that.sourceNode) && Objects.equals(endNode, that.endNode)) ||
+                   (Objects.equals(sourceNode, that.endNode) && Objects.equals(endNode, that.sourceNode)));
         }
 
         public boolean isContainNode(String node) {
@@ -125,8 +103,8 @@ public class MinimumSpanningTree {
             return nodes.contains(graphEntity.sourceNode) || nodes.contains(graphEntity.endNode);
         }
 
-        public boolean isCircularConnect(GraphEntity graphEntity) {
-            return nodes.contains(graphEntity.sourceNode) && nodes.contains(graphEntity.endNode);
+        public boolean isContainNode(String nodeName) {
+            return nodes.contains(nodeName);
         }
 
         public void attach(GraphEntity graphEntity) {
@@ -173,7 +151,7 @@ public class MinimumSpanningTree {
     }
 
     private static class KruskalAlgorithm {
-        private final List<NodeGroup> groups = new LinkedList<>();
+        private final Set<NodeGroup> nodeGroups = new HashSet<>();
 
         public KruskalAlgorithm(Graph graph) {
             // 가중치 값으로 오름차순 정렬
@@ -181,7 +159,6 @@ public class MinimumSpanningTree {
                                                     .stream()
                                                     .sorted(Comparator.comparingInt(e -> e.edgeWeight))
                                                     .collect(Collectors.toCollection(LinkedList::new));
-            System.out.println(graphEntities);
 
             while (!graphEntities.isEmpty()) {
                 GraphEntity graphEntity = graphEntities.poll();
@@ -191,53 +168,44 @@ public class MinimumSpanningTree {
                 }
 
                 updateGroup(graphEntity);
-
-                System.out.println(groups);
             }
 
-            groups.get(0).printEntities();
+            nodeGroups.iterator().next().printEntities();
         }
 
         public boolean isCircularConnection(GraphEntity graphEntity) {
-            NodeGroup group = findGroup(graphEntity);
-
-            if (group == null) {
-                return false;
+            for (NodeGroup nodeGroup : nodeGroups) {
+                boolean isContainTwoNode = nodeGroup.isContainNode(graphEntity.sourceNode) && nodeGroup.isContainNode(graphEntity.endNode);
+                if (isContainTwoNode) {
+                    return true;
+                }
             }
 
-            return group.isCircularConnect(graphEntity);
-        }
-
-        private NodeGroup findGroup(GraphEntity graphEntity) {
-            return groups.stream()
-                         .filter(group -> group.canAttach(graphEntity))
-                         .findFirst()
-                         .orElse(null);
+            return false;
         }
 
         public void updateGroup(GraphEntity graphEntity) {
-            List<NodeGroup> findGroups = groups.stream()
-                                               .filter(group -> group.canAttach(graphEntity))
-                                               .collect(Collectors.toList());
+            List<NodeGroup> findGroups = nodeGroups.stream()
+                                                   .filter(group -> group.canAttach(graphEntity))
+                                                   .collect(Collectors.toList());
 
-            if (findGroups.isEmpty()) {
-                NodeGroup newNodeGroup = new NodeGroup();
-                newNodeGroup.attach(graphEntity);
-                groups.add(newNodeGroup);
-            } else if (findGroups.size() == 1) {
-                NodeGroup nodeGroup = findGroups.get(0);
-                nodeGroup.attach(graphEntity);
-            } else {
-                NodeGroup newNodeGroup = new NodeGroup();
-
-                for (NodeGroup nodeGroup : findGroups) {
-                    groups.remove(nodeGroup);
-                    newNodeGroup.addGroup(nodeGroup);
-                }
-
-                groups.add(newNodeGroup);
+            for (NodeGroup nodeGroup : findGroups) {
+                nodeGroups.remove(nodeGroup);
             }
 
+            NodeGroup newNodeGroup = new NodeGroup();
+            newNodeGroup.attach(graphEntity);
+
+            if (findGroups.size() == 1) {
+                NodeGroup nodeGroup = findGroups.get(0);
+                newNodeGroup.addGroup(nodeGroup);
+            } else {
+                for (NodeGroup nodeGroup : findGroups) {
+                    newNodeGroup.addGroup(nodeGroup);
+                }
+            }
+
+            nodeGroups.add(newNodeGroup);
         }
     }
 
@@ -253,8 +221,6 @@ public class MinimumSpanningTree {
             while (findNodeGroups.size() != size) {
                 GraphEntity minimumEntity = findMinimumEdgeEntity(entities);
                 entities.remove(minimumEntity);
-                System.out.println(entities);
-                System.out.println(findNodes + " , " + minimumEntity);
                 addFoundNode(minimumEntity);
                 findNodeGroups.attach(minimumEntity);
             }
