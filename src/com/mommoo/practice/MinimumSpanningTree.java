@@ -5,7 +5,7 @@ import java.util.stream.Collectors;
 
 public class MinimumSpanningTree {
     public static void main(String[] args) {
-        Graph graph = createGraph();
+        Graph graph = createGraph2();
         new KruskalAlgorithm(graph);
         new PrimsAlgorithm(graph);
     }
@@ -27,6 +27,20 @@ public class MinimumSpanningTree {
         graph.add("g", "i", 6);
         graph.add("g", "h", 1);
         graph.add("h", "i", 7);
+        return graph;
+    }
+
+    // https://www.zerocho.com/category/Algorithm/post/584bcd42580277001862f1a7
+    private static Graph createGraph2() {
+        Graph graph = new Graph();
+        graph.add("a", "b", 6);
+        graph.add("a", "c", 3);
+        graph.add("b", "c", 2);
+        graph.add("b", "d", 5);
+        graph.add("c", "d", 3);
+        graph.add("d", "e", 2);
+        graph.add("d", "f", 3);
+        graph.add("f", "e", 5);
         return graph;
     }
 
@@ -53,7 +67,7 @@ public class MinimumSpanningTree {
         }
     }
 
-    private static class GraphEntity {
+    private static class GraphEntity implements Comparable<GraphEntity> {
         private final String sourceNode;
         private final String endNode;
         private final int edgeWeight;
@@ -93,6 +107,14 @@ public class MinimumSpanningTree {
         public int hashCode() {
             return Objects.hash(sourceNode, endNode, edgeWeight);
         }
+
+        @Override
+        public int compareTo(GraphEntity o) {
+            if (edgeWeight == o.edgeWeight) {
+                return sourceNode.compareTo(o.sourceNode);
+            }
+            return edgeWeight - o.edgeWeight;
+        }
     }
 
     private static class NodeGroup {
@@ -119,7 +141,7 @@ public class MinimumSpanningTree {
         }
 
         public void printEntities() {
-            System.out.println(graphEntities.stream().sorted(Comparator.comparingInt(g -> g.edgeWeight)).collect(Collectors.toList()));
+            System.out.println(graphEntities.stream().sorted().collect(Collectors.toList()));
         }
 
         @Override
