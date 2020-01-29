@@ -1,11 +1,11 @@
-package com.mommoo.practice;
+package com.mommoo.practice.minimum_spanning_tree;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class MinimumSpanningTree {
+public class Main {
     public static void main(String[] args) {
-        Graph graph = createGraph2();
+        Graph graph = createGraph();
         new KruskalAlgorithm(graph);
         new PrimsAlgorithm(graph);
     }
@@ -172,62 +172,63 @@ public class MinimumSpanningTree {
         }
     }
 
+    private static class DisjointSet {
+        private Map<String, String> elements = new HashMap<>();
+
+        public String findRootElement(String element) {
+            elements.putIfAbsent(element, element);
+            String findElement = elements.get(element);
+
+            if (Objects.equals(findElement, element)) {
+                return findElement;
+            }
+
+            // find next root element
+            return findRootElement(findElement);
+        }
+
+        public void union(String element1, String element2) {
+            String rootElement1 = findRootElement(element1);
+            String rootElement2 = findRootElement(element2);
+            if (rootElement1.compareTo(rootElement2) < 0) {
+                elements.put(element2, rootElement1);
+                elements.put(rootElement2, rootElement1);
+            } else {
+                elements.put(element1, rootElement2);
+                elements.put(rootElement1, rootElement2);
+            }
+
+            System.out.println(elements);
+        }
+
+        public boolean isSameSet(String element1, String element2) {
+            System.out.println(element1 + " , " + element2);
+            System.out.println(findRootElement(element1) + " , " + findRootElement(element2));
+            return Objects.equals(findRootElement(element1), findRootElement(element2));
+        }
+    }
+
     private static class KruskalAlgorithm {
-        private final Set<NodeGroup> nodeGroups = new HashSet<>();
+        private final DisjointSet disjointSet = new DisjointSet();
+        private final NodeGroup nodeGroup = new NodeGroup();
 
         public KruskalAlgorithm(Graph graph) {
             // 가중치 값으로 오름차순 정렬
-            Queue<GraphEntity> graphEntities = graph.toEntities()
-                                                    .stream()
-                                                    .sorted(Comparator.comparingInt(e -> e.edgeWeight))
-                                                    .collect(Collectors.toCollection(LinkedList::new));
+            PriorityQueue<GraphEntity> priorityQueue = new PriorityQueue<>(Comparator.comparingInt(g -> g.edgeWeight));
+            priorityQueue.addAll(graph.toEntities());
 
-            while (!graphEntities.isEmpty()) {
-                GraphEntity graphEntity = graphEntities.poll();
+            while (!priorityQueue.isEmpty()) {
+                GraphEntity graphEntity = priorityQueue.poll();
 
-                if (isCircularConnection(graphEntity)) {
+                if (disjointSet.isSameSet(graphEntity.sourceNode, graphEntity.endNode)) {
                     continue;
                 }
 
-                updateGroup(graphEntity);
+                disjointSet.union(graphEntity.sourceNode, graphEntity.endNode);
+                nodeGroup.attach(graphEntity);
             }
 
-            nodeGroups.iterator().next().printEntities();
-        }
-
-        public boolean isCircularConnection(GraphEntity graphEntity) {
-            for (NodeGroup nodeGroup : nodeGroups) {
-                boolean isContainTwoNode = nodeGroup.isContainNode(graphEntity.sourceNode) && nodeGroup.isContainNode(graphEntity.endNode);
-                if (isContainTwoNode) {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        public void updateGroup(GraphEntity graphEntity) {
-            List<NodeGroup> findGroups = nodeGroups.stream()
-                                                   .filter(group -> group.canAttach(graphEntity))
-                                                   .collect(Collectors.toList());
-
-            for (NodeGroup nodeGroup : findGroups) {
-                nodeGroups.remove(nodeGroup);
-            }
-
-            NodeGroup newNodeGroup = new NodeGroup();
-            newNodeGroup.attach(graphEntity);
-
-            if (findGroups.size() == 1) {
-                NodeGroup nodeGroup = findGroups.get(0);
-                newNodeGroup.addGroup(nodeGroup);
-            } else {
-                for (NodeGroup nodeGroup : findGroups) {
-                    newNodeGroup.addGroup(nodeGroup);
-                }
-            }
-
-            nodeGroups.add(newNodeGroup);
+            nodeGroup.printEntities();
         }
     }
 
