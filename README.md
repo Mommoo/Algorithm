@@ -1,5 +1,6 @@
-# Programmers
-https://programmers.co.kr/ 에서 제공하는 알고리즘을 풀었습니다.
+# Algorithm Site
+- [Programmers](https://programmers.co.kr/)
+- [BaekJoon](https://www.acmicpc.net/)
 
 # Todo
 ***알고리즘 시간복잡도를 최우선으로 두지 않습니다.***
@@ -25,7 +26,7 @@ https://programmers.co.kr/ 에서 제공하는 알고리즘을 풀었습니다.
 
 # UnSolved List
 도전 했지만 풀지 못한 문제 리스트 입니다.
-
+## Programmers
 | level |      name       | reason |
 | :---: | :-------------: |:------|
 |2 | H-Index| 정렬 후, 큰 값에서 차례대로, h번 이상 인용된 논문을 찾는 코드에서 무엇이 틀렸는지 모르겠습니다.
@@ -37,6 +38,7 @@ https://programmers.co.kr/ 에서 제공하는 알고리즘을 풀었습니다.
 
 
 # What Learned
+## Programmers
 | level |      name       | reason |
 | :---: | :-------------: |:-----|
 |2|조이스틱|바꿀 문자열을 찾는 알고리즘를 그리디로 해결 해야하는지, NP로 해결해야 하는지 감이 오지 않은거 같습니다. 그리디 vs NP에 대해서 학습해야 합니다.|
@@ -46,6 +48,7 @@ https://programmers.co.kr/ 에서 제공하는 알고리즘을 풀었습니다.
 |3|입국심사|완전 탐색이 아닌, 최소로 걸리는 시간과 최대로 걸리는 시간을 구할 수 있으면 그 시간 사이 에서의 경우로 문제해결을 시도할 수 있습니다.| 
 
 # What To Do
+## Programmers
 | level |      name       | reason |
 | :---: | :-------------: |:-----|
 |2|타겟 넘버|dfs 탐색에서 습관적으로 for문을 사용했는데, 해당 문제는 for문이 필요 없었습니다. 동전문제를 풀 때, for문을 사용했던기억이 있는데 차이점이 무엇인지 공부가 필요합니다.
