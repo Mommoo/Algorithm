@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 public class Practice {
     public static void main(String[] args) {
+        System.out.println(Long.MAX_VALUE);
         int[] arr = {111, 5, 3, 2, 6, 2, 444, 2116, 1, 3, 5, 6, 16, 33, 345, 15};
         long startTime = System.nanoTime();
         System.out.println(Arrays.stream(arr).max().orElse(-1));
