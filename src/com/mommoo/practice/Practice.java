@@ -1,6 +1,8 @@
 package com.mommoo.practice;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
@@ -10,58 +12,30 @@ import java.util.stream.Collectors;
 
 public class Practice {
     public static void main(String[] args) {
-        System.out.println(Long.MAX_VALUE);
-        int[] arr = {111, 5, 3, 2, 6, 2, 444, 2116, 1, 3, 5, 6, 16, 33, 345, 15};
-        long startTime = System.nanoTime();
-        System.out.println(Arrays.stream(arr).max().orElse(-1));
-        System.out.println(System.nanoTime() - startTime);
-        System.out.println("----------------------");
-        startTime = System.nanoTime();
-        int max = - 1;
-        for (int value : arr) {
-            if (max < value) {
-                max = value;
-            }
+        int[] values = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+        List<List<Integer>> results = new ArrayList<>();
+        foo(10, 2, 0, values, Collections.emptyList(), results);
+        for (List<Integer> result : results) {
+            System.out.println("index: " + result);
+            System.out.println("sum=" + result.stream().mapToInt(idx -> values[idx]).sum());
         }
-        System.out.println(max);
-        System.out.println(System.nanoTime() - startTime);
-        System.out.println("----------------------");
-        startTime = System.nanoTime();
-        PriorityQueue<Integer> queue = Arrays.stream(arr).boxed().collect(Collectors.toCollection(() -> new PriorityQueue<>()));
-        System.out.println(queue.poll());
-        System.out.println(System.nanoTime() - startTime);
     }
 
-    private static class Node {
-        private final int index;
-        private final int level;
-        private final int value;
-        private final List<Node> nodePaths;
-
-        public Node(int index, int level, int value, List<Node> nodePaths) {
-            this.index = index;
-            this.level = level;
-            this.value = value;
-            this.nodePaths = nodePaths;
+    public static void foo(int sum, int count, int nextIndex, int[] values, List<Integer> items, List<List<Integer>> results) {
+        if (sum == 0 && count == 0) {
+            results.add(items);
+            return;
         }
 
-        private static Node first(int index, int value) {
-            return new Node(index, 0, value, new LinkedList<>());
+        if (count == 0 || sum < 0) {
+            return;
         }
 
-        private Node nextNode(int nextIndex, int nextValue) {
-            List<Node> newNodePaths = new LinkedList<>(this.nodePaths);
-            newNodePaths.add(this);
-            return new Node(nextIndex, level + 1, nextValue, newNodePaths);
-        }
-
-        public String getPathString() {
-            List<Node> newNodePaths = new LinkedList<>(this.nodePaths);
-            newNodePaths.add(this);
-            return newNodePaths.stream()
-                               .map(n -> n.value)
-                               .map(String::valueOf)
-                               .collect(Collectors.joining(" -> "));
+        for (int i = nextIndex; i < values.length; i++) {
+            int currentValue = values[i];
+            List<Integer> newItems = new ArrayList<>(items);
+            newItems.add(i);
+            foo(sum - currentValue, count-1, i + 1, values, newItems, results);
         }
     }
 }
