@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -11,35 +12,59 @@ import java.util.StringTokenizer;
 
 public class Main {
     private static final String FIND_NUMBER_GROUP = "1";
-    // 콤비네이션 찾는게 메모리가 많이 드는듯. 다시!!
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         int N = Integer.parseInt(br.readLine());
         StringTokenizer tokenizer = new StringTokenizer(br.readLine());
-        List<NumberGroup> numberGroups = computeOrderedNumberGroups(N);
 
         if (FIND_NUMBER_GROUP.equals(tokenizer.nextToken())) {
-            int index = Integer.parseInt(tokenizer.nextToken()) - 1;
-            NumberGroup findNumberGroup = numberGroups.get(index);
-            System.out.println(findNumberGroup);
-            return;
+            int order = Integer.parseInt(tokenizer.nextToken());
+            List<NumberGroup> numberGroups = computeNumberGroups(N, order, null);
+            System.out.println(numberGroups.get(numberGroups.size() - 1));
+        } else {
+            NumberGroup findNumberGroup = joiningToNumberGroup(N, tokenizer);
+            List<NumberGroup> numberGroups = computeNumberGroups(N, -1, findNumberGroup);
+            System.out.println(numberGroups.size());
         }
-
-        NumberGroup findNumberGroup = joiningToNumberGroup(N, tokenizer);
-        int order = numberGroups.indexOf(findNumberGroup) + 1;
-        System.out.println(order);
     }
 
-    private static List<NumberGroup> computeOrderedNumberGroups(int N) {
-        List<NumberGroup> numberGroups = new ArrayList<>();
+    private static List<NumberGroup> computeNumberGroups(int N, int order, NumberGroup numberGroup) {
+        List<NumberGroup> numberGroups = new ArrayList<>(N + 4);
+        List<Integer> numbers = createNumbers(N);
 
-        dfs(N, NumberGroup.first(), createNumbers(N), numberGroups);
+        Deque<Node> deque = new LinkedList<>();
+        deque.offer(Node.first(N));
+
+        while (!deque.isEmpty()) {
+            Node node = deque.poll();
+            NumberGroup curNumberGroup = node.numberGroup;
+
+            if (curNumberGroup.hasSize(N)) {
+                numberGroups.add(curNumberGroup);
+                if (numberGroups.size() == order || curNumberGroup.equals(numberGroup)) {
+                    break;
+                }
+            }
+
+            offerNextNodes(deque, node, numbers);
+        }
 
         return numberGroups;
     }
 
+    private static void offerNextNodes(Deque<Node> deque, Node curNode, List<Integer> numbers) {
+        for (int i = 0; i < numbers.size(); i++) {
+            if (curNode.visits[i]) {
+                continue;
+            }
+
+            Node nextNode = curNode.next(i, numbers.get(i));
+            deque.offer(nextNode);
+        }
+    }
+
     private static List<Integer> createNumbers(int N) {
-        List<Integer> numbers = new ArrayList<>();
+        List<Integer> numbers = new ArrayList<>(N + 4);
         for (int i = 0 ; i < N; i++) {
             numbers.add(i + 1);
         }
@@ -52,22 +77,6 @@ public class Main {
             numberGroup.join(tokenizer.nextToken());
         }
         return numberGroup;
-    }
-
-    private static void dfs(int N, NumberGroup numberGroup, List<Integer> remainNums, List<NumberGroup> results) {
-        if (numberGroup.hasSize(N)) {
-            results.add(numberGroup);
-            return;
-        }
-
-        for (int i = 0; i < remainNums.size(); i++) {
-            NumberGroup nextNumberGroup = numberGroup.next(remainNums.get(i));
-
-            List<Integer> newRemainList = new ArrayList<>(remainNums);
-            newRemainList.remove(i);
-
-            dfs(N, nextNumberGroup, newRemainList, results);
-        }
     }
 
     private static class NumberGroup {
@@ -116,7 +125,33 @@ public class Main {
 
         @Override
         public boolean equals(Object other) {
+            if (other == null){
+                return false;
+            }
             return Objects.equals(other.toString(), this.toString());
+        }
+    }
+
+    private static class Node {
+        private final boolean[] visits;
+        private final NumberGroup numberGroup;
+
+        public Node(boolean[] visits, NumberGroup numberGroup) {
+            this.visits = visits;
+            this.numberGroup = numberGroup;
+        }
+
+        public static Node first(int N) {
+            return new Node(new boolean[N], NumberGroup.first());
+        }
+
+        public Node next(int visitIndex, int number) {
+            boolean[] nextVisits = new boolean[visits.length];
+            System.arraycopy(visits, 0, nextVisits, 0, visits.length);
+            nextVisits[visitIndex] = true;
+
+            NumberGroup nextGroup = numberGroup.next(number);
+            return new Node(nextVisits, nextGroup);
         }
     }
 }
