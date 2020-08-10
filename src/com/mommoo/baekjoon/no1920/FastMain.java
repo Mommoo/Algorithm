@@ -1,4 +1,4 @@
-package com.mommoo.no1920;
+package com.mommoo.baekjoon.no1920;
 
 import java.io.BufferedReader;
 import java.io.IOException;
