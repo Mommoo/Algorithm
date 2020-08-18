@@ -15,7 +15,28 @@ public class Main {
     public static void main(String[] args) throws IOException {
         String sentence = getInputSentence();
         parseSentence(sentence);
-        System.out.println(dfs(NUMS, OPERATIONS));
+
+        if (OPERATIONS.isEmpty()) {
+            System.out.println(NUMS.get(0));
+            return;
+        }
+
+        if (!OPERATIONS.contains('-')) {
+            System.out.println(sumFrom(0));
+            return;
+        }
+
+        int sum = 0;
+        for (int i = 0; i < OPERATIONS.size(); i++) {
+            sum += NUMS.get(i);
+
+            if (OPERATIONS.get(i) == MINUS) {
+                sum -= sumFrom(i + 1);
+                break;
+            }
+        }
+
+        System.out.println(sum);
     }
 
     private static String getInputSentence() throws IOException {
@@ -42,36 +63,11 @@ public class Main {
         NUMS.add(number);
     }
 
-    private static int dfs(List<Integer> remainNums, List<Character> remainOperations) {
-        if (remainNums.size() == 1) {
-            return remainNums.get(0);
+    private static int sumFrom(int beginIndex) {
+        int sum = 0;
+        for (int i = beginIndex; i < NUMS.size(); i++) {
+            sum += NUMS.get(i);
         }
-
-        int minResult = Integer.MAX_VALUE;
-        for (int i = 0; i < remainNums.size() - 1 ; i++) {
-            char operation = remainOperations.get(i);
-            int targetNum = remainNums.get(i);
-            int subNum = remainNums.get(i + 1);
-            int nextResult = calculate(operation, targetNum, subNum);
-
-            List<Integer> newRemainNums = new ArrayList<>(remainNums);
-            newRemainNums.remove(i);
-            newRemainNums.set(i, nextResult);
-
-            List<Character> newRemainOperations = new ArrayList<>(remainOperations);
-            newRemainOperations.remove(i);
-
-            minResult = Math.min(minResult, dfs(newRemainNums, newRemainOperations));
-        }
-
-        return minResult;
-    }
-
-    private static int calculate(char operation, int num1, int num2) {
-        switch(operation) {
-            case PLUS: return num1 + num2;
-            case MINUS: return num1 - num2;
-            default: return -1;
-        }
+        return sum;
     }
 }
