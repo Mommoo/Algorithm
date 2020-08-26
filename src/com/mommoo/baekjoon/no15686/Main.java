@@ -4,21 +4,14 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Queue;
 import java.util.Set;
 import java.util.StringTokenizer;
 
 public class Main {
-    private static final int[] dx = {0, -1, 0, 1};
-    private static final int[] dy = {1, 0, -1, 0};
-    private static final Queue<RowAndCol> QUEUE = new LinkedList<>();
-    private static boolean[][] VISITS;
-
     private static final char EMPTY = '0';
     private static final char HOUSE = '1';
     private static final char CHICKEN = '2';
@@ -35,7 +28,6 @@ public class Main {
         SIZE = Integer.parseInt(tokenizer.nextToken());
         CHICKEN_COUNT = Integer.parseInt(tokenizer.nextToken());
         MAP = createMapAndFillChickens(reader);
-        VISITS = new boolean[SIZE][SIZE];
         CHICKEN_LOCATION_CONDITIONS = createChickenLocationConditions();
 
         int minDistanceSum = Integer.MAX_VALUE;
@@ -92,8 +84,6 @@ public class Main {
         for (int row = 0; row < SIZE; row++) {
             for (int col = 0; col < SIZE; col++) {
                 if (MAP[row][col] == HOUSE) {
-                    QUEUE.clear();
-                    clearVisits();
                     minDistanceSum += computeMinimumChickenDistance(row, col, chickens);
                 }
             }
@@ -102,32 +92,11 @@ public class Main {
         return minDistanceSum;
     }
 
-    private static void clearVisits() {
-        for (boolean[] visitLine: VISITS) {
-            Arrays.fill(visitLine, false);
-        }
-    }
-
     private static int computeMinimumChickenDistance(int row, int col, Set<RowAndCol> chickens) {
-        QUEUE.add(new RowAndCol(row, col));
         int minDistance = Integer.MAX_VALUE;
-        while (!QUEUE.isEmpty()) {
-            RowAndCol rowAndCol = QUEUE.poll();
-            int curRow = rowAndCol.row;
-            int curCol = rowAndCol.col;
-            if (chickens.contains(rowAndCol)) {
-                minDistance = Math.min(minDistance, Math.abs(curRow - row) + Math.abs(curCol - col));
-                break;
-            }
 
-            for (int i = 0 ; i < 4 ; i ++) {
-                int nextRow = curRow + dy[i];
-                int nextCol = curCol + dx[i];
-                if ((0 <= nextRow && nextRow < SIZE && 0 <= nextCol && nextCol < SIZE) && !VISITS[nextRow][nextCol]) {
-                    QUEUE.add(new RowAndCol(nextRow, nextCol));
-                    VISITS[nextRow][nextCol] = true;
-                }
-            }
+        for (RowAndCol chickenLocation: chickens) {
+            minDistance = Math.min(minDistance, Math.abs(chickenLocation.row - row) + Math.abs(chickenLocation.col - col));
         }
 
         return minDistance;
@@ -156,14 +125,6 @@ public class Main {
         @Override
         public int hashCode() {
             return Objects.hash(row, col);
-        }
-
-        @Override
-        public String toString() {
-            return "{" +
-                   "row=" + row +
-                   ", col=" + col +
-                   '}';
         }
     }
 }
