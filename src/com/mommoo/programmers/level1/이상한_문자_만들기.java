@@ -30,7 +30,7 @@ public class 이상한_문자_만들기 {
     }
 
     private String computeLastBlank(String string) {
-        int lastBlankLength = string.length() - string.stripTrailing().length();
+        int lastBlankLength = string.length() - string.trim().length();
 
         StringBuilder builder = new StringBuilder();
         while (lastBlankLength-- > 0) {

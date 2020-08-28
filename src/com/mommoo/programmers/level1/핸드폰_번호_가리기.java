@@ -8,6 +8,10 @@ public class 핸드폰_번호_가리기 {
 
     public String solution(String phone_number) {
         int needToHideLen = phone_number.length() - 4;
-        return "*".repeat(needToHideLen) + phone_number.substring(needToHideLen);
+        StringBuilder builder = new StringBuilder();
+        while (needToHideLen -- > 0) {
+            builder.append("*");
+        }
+        return builder.toString() + phone_number.substring(needToHideLen);
     }
 }

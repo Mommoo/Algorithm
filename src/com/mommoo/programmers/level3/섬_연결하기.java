@@ -62,7 +62,7 @@ public class 섬_연결하기 {
                           .flatMap(source -> paths.get(source).stream())
                           .filter(node -> !sources.contains(node.value))
                           .min(Comparator.comparingInt(node -> node.edge))
-                          .orElseThrow();
+                          .orElseThrow(RuntimeException::new);
         }
     }
 

@@ -72,7 +72,7 @@ public class 베스트앨범 {
             return songs.entrySet().stream()
                         .map(Genre::from)
                         .sorted()
-                        .collect(Collectors.toUnmodifiableList());
+                        .collect(Collectors.toList());
         }
 
         public List<Integer> findTopTwoSongIndexes(Genre genre) {

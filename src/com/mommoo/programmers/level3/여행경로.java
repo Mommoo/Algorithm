@@ -215,7 +215,7 @@ public class 여행경로 {
         }
 
         public String[] computeProperPath() {
-            return properAirportPath.visitOrders.toArray(String[]::new);
+            return properAirportPath.visitOrders.toArray(new String[properAirportPath.visitOrders.size()]);
         }
     }
 }
