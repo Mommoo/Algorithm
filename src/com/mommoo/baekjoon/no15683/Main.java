@@ -90,6 +90,8 @@ public class Main {
             minAreaCount = Math.min(minAreaCount, dfs(index + 1, newMap));
             newMap = processCCTV(cctv, nextMap, Direction.RIGHT, Direction.BOTTOM);
             minAreaCount = Math.min(minAreaCount, dfs(index + 1, newMap));
+            newMap = processCCTV(cctv, nextMap, Direction.LEFT, Direction.BOTTOM);
+            minAreaCount = Math.min(minAreaCount, dfs(index + 1, newMap));
         }
 
         if (cctv.type == 4) {
