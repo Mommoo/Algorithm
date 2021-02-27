@@ -1,146 +1,173 @@
 package com.mommoo.baekjoon.no16236;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Objects;
-import java.util.Queue;
-import java.util.Set;
-import java.util.StringTokenizer;
+import java.util.*;
 
 public class Main {
+    private static final Comparator<RowAndCol> POSITION_COMPARATOR = (p1, p2) -> {
+        if (p1.row == p2.row) {
+            return p1.col - p2.col;
+        }
+
+        return p1.row - p2.row;
+    };
     private static final int[] dx = {0, -1 , 1, 0};
     private static final int[] dy = {1, 0, 0, -1};
+    private static final boolean[][] VISITS = new boolean[20][20];
 
-    private static int N;
-    private static int[][] NODES;
-    private static boolean[][] VISITS;
+    private static final Queue<Node> NODES = new LinkedList<>();
 
     private static int SHARK_SIZE = 2;
-    private static int SHARK_EAT_COUNT;
+    private static int EAT_COUNT = 0;
     private static RowAndCol SHARK_POSITION;
 
-    public static void main(String[] args) throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-        N = Integer.parseInt(reader.readLine());
-        NODES = createNodes(reader);
-        VISITS = new boolean[N][N];
-        reader.close();
 
-        int totalTime = 0;
+    private static int[][] MAP;
+
+    private static int TIME = 0;
+
+    public static void main(String[] args) throws Exception {
+        MAP = inputMap();
+        SHARK_POSITION = findShark();
         while (true) {
-            int time = eatFish();
+            Node fishNode = findFish();
 
-            if (time == 0) {
+            if (fishNode == null) {
+                System.out.println(TIME);
                 break;
             }
 
-            growShark();
-
-            totalTime += time;
+            eatFish(fishNode);
+            clearVisits();
         }
-
-        System.out.println(totalTime);
     }
 
-    private static int[][] createNodes(BufferedReader reader) throws IOException {
-        int[][] nodes = new int[N][N];
+    private static int[][] inputMap() throws Exception {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        int size = Integer.parseInt(br.readLine());
+        int[][] map = new int[size][size];
 
-        for (int row = 0 ; row < N; row++) {
-            StringTokenizer tokenizer = new StringTokenizer(reader.readLine());
-            for (int col = 0; col < N; col++) {
-                nodes[row][col] = tokenizer.nextToken().charAt(0) - '0';
+        for (int row = 0 ; row < size; row++) {
+            StringTokenizer mapLine = new StringTokenizer(br.readLine());
+            for (int col = 0; col < size; col++) {
+                map[row][col] = Integer.parseInt(mapLine.nextToken());
+            }
+        }
 
-                if (nodes[row][col] == 9) {
-                    SHARK_POSITION = new RowAndCol(row, col);
+        br.close();
+        return map;
+    }
+
+    private static RowAndCol findShark() {
+        for (int row = 0; row < MAP.length; row ++) {
+            for (int col = 0; col < MAP[row].length; col++) {
+                if (MAP[row][col] == 9) {
+                    return new RowAndCol(row, col);
                 }
             }
         }
 
-        return nodes;
+        return null;
     }
 
-    private static int eatFish() {
-        Node node = bfs(SHARK_POSITION.row, SHARK_POSITION.col);
-        System.out.println("target!!");
-        System.out.println(node);
-        if (node == null) {
-            return 0;
-        }
-        NODES[node.row][node.col] = NODES[SHARK_POSITION.row][SHARK_POSITION.col] =  0;
-        SHARK_POSITION = node.toRowAndCol();
-        initVisits();
-        return node.time;
-    }
+    private static Node findFish() {
+        Set<RowAndCol> findPositions = new HashSet<>();
+        offerNode(Node.first(SHARK_POSITION.row, SHARK_POSITION.col));
 
-    private static Node bfs(int row, int col) {
-        System.out.println("shark: " + row + " , " + col);
-        VISITS[row][col] = true;
-        Node first = new Node(row, col, 0);
-        Queue<Node> queue = new LinkedList<>();
-        queue.add(first);
+        int findNodeCost = -1;
+        while (!NODES.isEmpty()) {
+            Node node = NODES.poll();
 
-        while (!queue.isEmpty()) {
-            Node node = queue.peek();
-//            System.out.println(node);
-            int r = node.row;
-            int c = node.col;
-            int time = node.time;
+            if (isEatableFish(node.row, node.col)) {
+                findNodeCost = node.cost;
+                findPositions.add(new RowAndCol(node.row, node.col));
 
-            if (NODES[r][c] != 0 && NODES[r][c] < SHARK_SIZE) {
-                break;
+                offerIfExistEatableFishNodeInSameNodeCost(node.cost, findPositions);
+                continue;
             }
 
-            queue.poll();
-
             for (int i = 0 ; i < 4; i++) {
-                int nextRow = r + dy[i];
-                int nextCol = c + dx[i];
+                int nextRow = node.row + dy[i];
+                int nextCol = node.col + dx[i];
 
-                boolean isInvalid = !(0 <= nextRow && nextRow < N && 0 <= nextCol && nextCol < N);
-
-                if (isInvalid || VISITS[nextRow][nextCol] || SHARK_SIZE < NODES[nextRow][nextCol]) {
+                if (!canPass(nextRow, nextCol) || VISITS[nextRow][nextCol]) {
                     continue;
                 }
 
-                VISITS[nextRow][nextCol] = true;
-                queue.offer(new Node(nextRow, nextCol, time+1));
+                offerNode(node.next(nextRow, nextCol));
             }
         }
 
-        return findTargetFish(queue);
+        return findHighPriorityPosition(findPositions, findNodeCost);
     }
 
-    private static Node findTargetFish(Queue<Node> nodes) {
-        System.out.println("finded!!");
-        System.out.println(nodes);
+    private static boolean isSharkPosition(int row, int col) {
+        return SHARK_POSITION.row == row && SHARK_POSITION.col == col;
+    }
 
-        int row = Integer.MAX_VALUE;
-        int col = Integer.MAX_VALUE;
-        Node node = null;
-        for (Node n : nodes) {
-            if (n.row < row || (n.row == row && n.col < col)) {
-                node = n;
+    private static void offerNode(Node curNode) {
+        NODES.add(curNode);
+        VISITS[curNode.row][curNode.col] = true;
+    }
+
+    private static void offerIfExistEatableFishNodeInSameNodeCost(int nodeCost, Set<RowAndCol> results) {
+        while (!NODES.isEmpty()) {
+            Node node = NODES.poll();
+            if (node.cost == nodeCost && isEatableFish(node.row, node.col)) {
+                results.add(new RowAndCol(node.row, node.col));
             }
         }
-
-        return node;
     }
 
-    private static void initVisits() {
-        for (int row = 0 ; row < N; row++) {
-            Arrays.fill(VISITS[row], false);
+    private static Node findHighPriorityPosition(Set<RowAndCol> positions, int nodeCost) {
+        if (positions.isEmpty()) {
+            return null;
         }
+
+        List<RowAndCol> lPositions = new ArrayList<>(positions);
+        lPositions.sort(POSITION_COMPARATOR);
+
+        return Node.of(lPositions.get(0), nodeCost);
     }
 
-    private static void growShark() {
-        SHARK_EAT_COUNT++;
-        if (SHARK_EAT_COUNT == SHARK_SIZE) {
+    private static void eatFish(Node fishNode) {
+        MAP[SHARK_POSITION.row][SHARK_POSITION.col] = 0;
+        MAP[fishNode.row][fishNode.col] = 9;
+
+        EAT_COUNT++;
+        if (EAT_COUNT == SHARK_SIZE) {
             SHARK_SIZE++;
-            SHARK_EAT_COUNT = 0;
+            EAT_COUNT = 0;
+        }
+
+        TIME += fishNode.cost;
+
+        SHARK_POSITION = new RowAndCol(fishNode.row, fishNode.col);
+    }
+
+    private static boolean isEatableFish(int row, int col) {
+        if (isSharkPosition(row, col)) {
+            return false;
+        }
+        int nodeValue = MAP[row][col];
+        return nodeValue != 0 && nodeValue < SHARK_SIZE;
+    }
+
+    private static boolean canPass(int row, int col) {
+        if (row < 0 || row >= MAP.length || col < 0 || col >= MAP.length) {
+            return false;
+        }
+
+        int nodeValue = MAP[row][col];
+        return nodeValue == 0 || nodeValue <= SHARK_SIZE;
+    }
+
+    private static void clearVisits() {
+        for (int row = 0; row < 20; row++) {
+            for (int col = 0; col < 20; col++) {
+                VISITS[row][col] = false;
+            }
         }
     }
 
@@ -151,14 +178,6 @@ public class Main {
         public RowAndCol(int row, int col) {
             this.row = row;
             this.col = col;
-        }
-
-        @Override
-        public String toString() {
-            return "RowAndCol{" +
-                   "row=" + row +
-                   ", col=" + col +
-                   '}';
         }
 
         @Override
@@ -181,25 +200,24 @@ public class Main {
     private static class Node {
         private final int row;
         private final int col;
-        private final int time;
+        private final int cost;
 
-        public Node(int row, int col, int time) {
+        public static Node first(int row, int col) {
+            return new Node(row, col, 0);
+        }
+
+        public Node next(int row, int col) {
+            return new Node(row, col, cost + 1);
+        }
+
+        public Node(int row, int col, int cost) {
             this.row = row;
             this.col = col;
-            this.time = time;
+            this.cost = cost;
         }
 
-        public RowAndCol toRowAndCol() {
-            return new RowAndCol(row, col);
-        }
-
-        @Override
-        public String toString() {
-            return "Node{" +
-                   "row=" + row +
-                   ", col=" + col +
-                   ", time=" + time +
-                   '}';
+        public static Node of(RowAndCol rowAndCol, int value) {
+            return new Node(rowAndCol.row, rowAndCol.col, value);
         }
     }
 }
