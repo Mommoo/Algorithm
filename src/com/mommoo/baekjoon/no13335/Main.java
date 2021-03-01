@@ -8,7 +8,6 @@ import java.util.Queue;
 import java.util.StringTokenizer;
 
 public class Main {
-    private static int CAR_COUNT;
     private static Bridge BRIDGE;
     private static final Queue<Integer> CAR_WEIGHTS = new LinkedList<>();
 
@@ -32,7 +31,7 @@ public class Main {
     private static void setUp() throws Exception {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         StringTokenizer tokenizer = new StringTokenizer(br.readLine());
-        CAR_COUNT = Integer.parseInt(tokenizer.nextToken());
+        Integer.parseInt(tokenizer.nextToken());
         BRIDGE = Bridge.of(tokenizer.nextToken(), tokenizer.nextToken());
 
         tokenizer = new StringTokenizer(br.readLine());
@@ -44,9 +43,7 @@ public class Main {
 
     private static class Bridge {
         private final int width;
-        private final int weight;
         private final Deque<Car> onCars = new LinkedList<>();
-        private final Queue<Car> tempQueue = new LinkedList<>();
         private int remainWeight;
 
         public static Bridge of(String width, String weight) {
@@ -55,7 +52,6 @@ public class Main {
 
         public Bridge(int width, int weight) {
             this.width = width;
-            this.weight = weight;
             this.remainWeight = weight;
         }
 
@@ -113,7 +109,9 @@ public class Main {
         }
 
         private void moveAllCars(int movePosition) {
-            while (!onCars.isEmpty()) {
+            int size = onCars.size();
+
+            while (size-- > 0) {
                 Car onCar = onCars.poll();
                 onCar.move(movePosition);
                 if (onCar.isPosition(width)) {
@@ -121,11 +119,8 @@ public class Main {
                     continue;
                 }
 
-                tempQueue.offer(onCar);
+                onCars.offer(onCar);
             }
-
-            onCars.addAll(tempQueue);
-            tempQueue.clear();
         }
     }
 
