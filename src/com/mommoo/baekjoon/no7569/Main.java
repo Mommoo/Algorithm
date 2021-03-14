@@ -15,6 +15,10 @@ public class Main {
     private static final int GOOD_TOMATO = 1;
     private static final int NORMAL_TOMATO = 0;
 
+    private static int H;
+    private static int N;
+    private static int M;
+
     private static int[][][] NODES;
     private static boolean[][][] VISITS;
     private static final Queue<Position> POSITIONS = new LinkedList<>();
@@ -32,9 +36,9 @@ public class Main {
     private static int[][][] createNodes() throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         StringTokenizer tokenizer = new StringTokenizer(reader.readLine());
-        int M = Integer.parseInt(tokenizer.nextToken());
-        int N = Integer.parseInt(tokenizer.nextToken());
-        int H = Integer.parseInt(tokenizer.nextToken());
+        M = Integer.parseInt(tokenizer.nextToken());
+        N = Integer.parseInt(tokenizer.nextToken());
+        H = Integer.parseInt(tokenizer.nextToken());
 
         int [][][] nodes = new int[H][N][M];
 
@@ -53,9 +57,9 @@ public class Main {
     }
 
     private static void offerGoodTomatoPositions() {
-        for (int level = 0; level < NODES.length; level++) {
-            for (int row = 0; row < NODES[level].length; row++) {
-                for (int col = 0; col < NODES[level][row].length; col++) {
+        for (int level = 0; level < H; level++) {
+            for (int row = 0; row < N; row++) {
+                for (int col = 0; col < M; col++) {
                      if (NODES[level][row][col] == GOOD_TOMATO) {
                          offerTomatoPosition(new Position(level, row, col));
                      }
@@ -97,9 +101,9 @@ public class Main {
     }
 
     private static boolean existNormalTomato() {
-        for (int level = 0; level < NODES.length; level++) {
-            for (int row = 0; row < NODES[level].length; row++) {
-                for (int col = 0; col < NODES[level][row].length; col++) {
+        for (int level = 0; level < H; level++) {
+            for (int row = 0; row < N; row++) {
+                for (int col = 0; col < M; col++) {
                     if (NODES[level][row][col] == NORMAL_TOMATO) {
                         return true;
                     }
@@ -111,7 +115,7 @@ public class Main {
     }
 
     private static boolean isInvalid(int level, int row, int col) {
-        return !(0<= level && level < NODES.length && 0<= row && row < NODES[level].length && 0 <= col && col < NODES[level][row].length);
+        return !(0<= level && level < H && 0<= row && row < N && 0 <= col && col < M);
     }
 
     private static boolean isNormalTomato(int level, int row, int col) {
@@ -127,10 +131,6 @@ public class Main {
             this.level = level;
             this.row = row;
             this.col = col;
-        }
-
-        public Position next(int dz, int dy, int dx) {
-            return new Position(level + dz, row + dy, col + dx);
         }
     }
 }
