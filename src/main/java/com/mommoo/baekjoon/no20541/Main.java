@@ -131,7 +131,7 @@ public class Main {
         }
 
         public void executeCa(String parameter) {
-            if ("..".equals(parameter)) {
+            if ("main".equals(parameter)) {
                 if (albumHistories.size() > 1) {
                     this.albumHistories.pop();
                 }

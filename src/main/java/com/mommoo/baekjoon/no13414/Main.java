@@ -94,21 +94,7 @@ public class Main {
         }
 
         public Iterator<String> createIterator() {
-            return new Iterator<>() {
-                private Node current = values.get(first);
-
-                @Override
-                public boolean hasNext() {
-                    return current != null;
-                }
-
-                @Override
-                public String next() {
-                    String value = current.value;
-                    current = current.post;
-                    return value;
-                }
-            };
+            return null;
         }
     }
 
