@@ -1,4 +1,4 @@
 .idea
 *.iml
 out
-/src/com/mommoo/kakao/blind
+/src/main/java/com/mommoo/kakao/blind
