@@ -28,7 +28,7 @@ class StackTest {
 
     @DisplayName("다음 수식에서 여는 괄호의 위치가 어디에서 닫히는지 인덱스를 찾아라.")
     @ParameterizedTest
-    @CsvSource({"[{1 + 2 * (2 + 2)} - (1 - 3)],1,16", "[{1 + 2 * (2 + 2)} - (1 - 3)],10,16"})
+    @CsvSource({"[{1 + 2 * (2 + 2)} - (1 - 3)],1,17", "[{1 + 2 * (2 + 2)} - (1 - 3)],10,16"})
     void test3(String expression, Integer beginIndex, Integer actualIndex) {
         Integer expectedIndex = null;
 
@@ -37,20 +37,11 @@ class StackTest {
 
     @DisplayName("괄호 몇개를 뒤집어야 정상적인 수식을 만들 수 있는지 개수를 찾아라. 만약 만들 수 없다면 -1 을 리턴한다.")
     @ParameterizedTest
-    @CsvSource({"{{{}},-1", "{{{{}},1", "}}}}{}}},3", "{{{{,2"})
+    @CsvSource({"{{{}},-1", "{{{{}},1", "}}}}{}}},3", "{{{{,2", "{{}}}},1"})
     void test4(String expression, Integer actualCount) {
         Integer expectedCount = null;
 
         assertThat(expectedCount).isEqualTo(actualCount);
-    }
-
-    @DisplayName("주어진 수식에 불필요한 괄호가 있는지 판단하라.")
-    @ParameterizedTest
-    @CsvSource({"1+(2*3),false", "(1+2)+3,true", "(1*2)+3,false", "1+(1*2)+3,false", "((1+2))+5,true", "(1)+3*4,true"})
-    void test5(String expression, Boolean actualResult) {
-        Boolean expectedResult = null;
-
-        assertThat(expectedResult).isEqualTo(actualResult);
     }
 
     /**
@@ -59,7 +50,7 @@ class StackTest {
      * */
     @DisplayName("산술 연산식 인픽스가 주어질 때, 프리픽스로 변환하여라.")
     @ParameterizedTest
-    @CsvSource({"1+2*3,+*231", "1*5+2*7,+**1527"})
+    @CsvSource({"1+2*3,+1*23", "1*5+2*7,+*15*27"})
     void test6(String expression, String actualPrefix) {
         String expectedPrefix = null;
 
@@ -96,7 +87,7 @@ class StackTest {
      */
     @DisplayName("산술 연산식 인픽스가 주어질 때, 포스트픽스로 변환하여라.")
     @ParameterizedTest
-    @CsvSource({"1+2*3,123*+", "1*5+2*7,15*27*+", "(1+2)*3,12+3*"})
+    @CsvSource({"1+2*3,123*+", "1*5+2*7,15*27*+", "(1+2)*3,12+3*", "(1+2*5+7)*3,125*7++3*"})
     void test7(String expression, String actualPostfix) {
         String expectedPostfix = null;
 
